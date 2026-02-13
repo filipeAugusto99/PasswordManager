@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import pyperclip
+import json
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 #Password Generator Project
@@ -38,26 +39,42 @@ def generate_password():
 
     pwd_entry.insert(0, password)
     pyperclip.copy(password)
-    
+
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save():
     website = website_entry.get()
     email = email_entry.get()
     password = pwd_entry.get()
+    new_data = {
+        website: {
+            "email": email,
+            "password": password,
+        }
+    }
 
     if len(password) == 0 or len(website) == 0:
         messagebox.showwarning(title="Attention",message="Some fields empty, please try again!")
     else:
-        is_ok = messagebox.askokcancel(title=website, message=f"These are the details entered: "
-                                                      f"\nEmail: {email}"
-                                                      f"\nPassword: {password}"
-                                                      f"\nIs it ok to save?")
-        if is_ok:
-            with open("data.txt", mode="a") as data:
-                data.write(f"{website} | {email} | {password}\n")
 
+        try:
+            with open("data.json", mode="r") as data:
+                # Read old data
+                data_file = json.load(data)
+                # Updating old data with new data
+                data_file.update(new_data)
+        except FileNotFoundError:
+            with open("data.json", mode="w") as data:
+                # Saving updated data
+                json.dump(new_data, data, indent=4)
+        else:
+            # Updating old data with new data
+            data_file.update(new_data)
+            with open("data.json", mode="w") as data:
+                # Saving updated data
+                json.dump(data_file, data, indent=4)
+
+        finally:
             website_entry.delete(0, END)
-            email_entry.delete(0, END)
             pwd_entry.delete(0, END)
 
 
